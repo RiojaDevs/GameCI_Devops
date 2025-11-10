@@ -1,0 +1,94 @@
+name: Upload to Itch.io
+
+on:
+  workflow_call:
+    inputs:
+      buildVersionFull:
+        required: true
+        type: string
+      buildPath:
+        required: true
+        type: string
+      itchioChannel:
+        required: true
+        type: string
+    secrets:
+      ITCHIO_API_KEY:
+        required: true
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      PATH: ~/.local/bin:$PATH
+    steps:
+      - name: 💾 Cache Butler
+        id: cache-butler
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/bin/butler
+          key: butler-linux-amd64-v17  # cambia el sufijo si actualizas la version
+
+      - name: Install butler if not cached
+        if: steps.cache-butler.outputs.cache-hit != 'true'
+        run: |
+          echo "🔽 Descargando Butler..."
+          mkdir -p ~/.local/bin
+          curl -L -o butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
+          unzip butler.zip
+          mv butler ~/.local/bin/butler
+          chmod +x ~/.local/bin/butler
+          echo "✅ Butler instalado correctamente"
+          butler -V
+
+      - name: 🧾 Verify Butler
+        run: |
+          butler -V
+          echo "✅ Butler disponible en el PATH"
+
+      - name: Push to Itch.io
+        id: push
+        env:
+          BUTLER_API_KEY: ${{ secrets.ITCHIO_API_KEY }}
+        run: |
+          CHANNEL="${{ inputs.itchioChannel }}"
+          BUILD_PATH="${{ inputs.buildPath }}"
+
+          if [ ! -d "$BUILD_PATH" ]; then
+            echo "❌ Error: No se encontró la carpeta de build: $BUILD_PATH"
+            exit 1
+          fi
+
+          echo "📁 Carpeta detectada: $BUILD_PATH"
+          echo "🎯 Canal destino: $CHANNEL"
+          echo "📦 Tamaño aproximado:"
+          du -sh "$BUILD_PATH" || true
+
+          echo "⏱️ Iniciando subida..."
+          START_TIME=$(date +%s)
+
+          butler push "$BUILD_PATH" "$CHANNEL" --userversion "${{ inputs.buildVersionFull }}" || {
+            echo "❌ Fallo durante la subida a Itch.io"
+            exit 2
+          }
+
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+
+          echo "✅ Subida completada correctamente en ${DURATION}s"
+          echo "itchio_url=https://$(echo $CHANNEL | sed 's/:/\//g')" >> $GITHUB_OUTPUT
+          echo "upload_duration=${DURATION}s" >> $GITHUB_OUTPUT
+
+      - name: 🧾 Resumen de subida
+        if: always()
+        run: |
+          {
+            echo "## 📤 Itch.io Upload Summary"
+            echo "**Canal:** ${{ inputs.itchioChannel }}"
+            echo "**Versión:** ${{ inputs.buildVersionFull || 'N/A' }}"
+            echo "**Duración:** ${{ steps.push.outputs.upload_duration }}"
+            echo "**URL:** [Abrir en Itch.io](${{ steps.push.outputs.itchio_url }})"
+            echo "**Fecha:** $(date '+%Y-%m-%d %H:%M:%S')"
+          } >> $GITHUB_STEP_SUMMARY
+

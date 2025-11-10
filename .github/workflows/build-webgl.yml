@@ -1,0 +1,50 @@
+name: Build WebGL
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - PRE_PRODUCCION
+      - PRODUCCION
+  workflow_call:
+    inputs: 
+      unityVersion:
+        required: false
+        type: string
+        default: '6000.2.10f1'
+        description: 'Version of Unity to use for the build.'
+      publishToItch: 
+        required: false
+        type: boolean
+        description: 'Whether to publish the build to Itch.io.'
+      itchioChannel:
+        required: false
+        default: pax16/test-devops:webgl
+        type: string
+        description: 'Itch.io channel to publish the build to'
+      sendToDiscord: 
+        required: false
+        type: boolean
+        description: 'Whether to send a notification to Discord.'
+    secrets:
+      UNITY_LICENSE:
+        required: true
+      UNITY_EMAIL:
+        required: true
+      UNITY_PASSWORD:
+        required: true
+      DISCORD_WEBHOOK_URL:
+        required: false
+      ITCHIO_API_KEY:
+        required: false
+jobs:
+  build:
+    name: 🌐 Build WebGL
+    uses: Pax16gamedev/TestGameCI_DevOps/.github/workflows/build-core.yml@DESARROLLO
+    with:
+      unityVersion: ${{ inputs.unityVersion }}
+      buildTarget: WebGL
+      publishToItch: ${{ inputs.publishToItch }}
+      itchioChannel: ${{ inputs.itchioChannel }}
+      sendToDiscord: ${{ inputs.sendToDiscord }}
+    secrets: inherit

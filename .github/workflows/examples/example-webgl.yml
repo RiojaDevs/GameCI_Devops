@@ -1,0 +1,17 @@
+name: Example - Build WebGL
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - PRE_PRODUCCION
+      - PRODUCCION
+
+jobs:
+  build-webgl:
+    uses: Pax16gamedev/TestGameCI_DevOps/.github/workflows/build-webgl.yml@DESARROLLO
+    secrets: inherit
+    with:
+      sendToDiscord: false
+      publishToItch: true
+      itchioChannel: "pax16/test-devops:webgl"

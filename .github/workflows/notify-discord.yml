@@ -1,0 +1,158 @@
+name: Notify Discord
+
+on:
+  workflow_call:
+    inputs:
+      build_version:
+        required: true
+        type: string
+        description: 'Version of the build.'
+      link_action:
+        required: true
+        type: string
+        description: 'Link to the workflow run or artifact.'
+      status:
+        required: true
+        type: string
+        description: 'Status message for the build.'
+      color:
+        required: true
+        type: string
+        description: 'Color code for the embed message.'
+      branch_name:
+        required: true
+        type: string
+        description: 'Name of the branch.'
+      build_platform:
+        required: true
+        type: string
+        description: 'Platform of the build (buildTarget).'
+      build_size:
+        required: true
+        type: string
+        description: 'Size of the build.'
+      duration:
+        required: true
+        type: string
+        description: 'Duration of the build process.'
+      project_name:
+        required: true
+        type: string
+        description: 'Name of the project.'
+      thumbnail_url:
+        required: true
+        type: string
+        description: 'URL of the thumbnail image.'
+      timestamp:
+        required: true
+        type: string
+        description: 'Timestamp for the message.'
+      
+    secrets:
+      DISCORD_WEBHOOK_URL:
+        required: true
+
+jobs:
+  # Set notification message
+  # Enlace de descarga directa al artifact por API: https://api.github.com/repos/${{ github.repository }}/actions/artifacts/${{ steps.get-artifact-id.outputs.artifact_id }}/zip
+  # Enlace público de descarga directa al artifact: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.get-artifact-id.outputs.artifact_id }}
+  set-notification-message:
+    runs-on: ubuntu-latest
+    name: Set Discord Notification Message
+    steps:
+      - name: Set environment variables
+        id: set-env
+        if: always()
+        run: |
+          # Asignar variables de los inputs a Bash
+          BUILD_VERSION="${{ inputs.build_version }}"
+          LINK_ACTION="${{ inputs.link_action }}"
+          STATUS="${{ inputs.status }}"
+          COLOR="${{ inputs.color }}"
+          BRANCH_NAME="${{ inputs.branch_name }}"
+          BUILD_PLATFORM="${{ inputs.build_platform }}"
+          BUILD_SIZE="${{ inputs.build_size }}"
+          DURATION="${{ inputs.duration }}"
+          PROJECT_NAME="${{ inputs.project_name }}"
+          THUMBNAIL_URL="${{ inputs.thumbnail_url }}"
+          TIMESTAMP="${{ inputs.timestamp }}"
+
+          cat <<EOF > payload.json
+          {
+              "tts": false,
+              "embeds": [
+                {
+                  "title": "👷 Workflow terminado - ${BUILD_VERSION}",
+                  "url": "${LINK_ACTION}",
+                  "description": "${STATUS}",
+                  "color": "${COLOR:-5814783}",
+                  "fields": [
+                    { "name": "🌿 Rama ", "value": "${BRANCH_NAME}" },
+                    { "name": "🎮 Plataforma ", "value": "${BUILD_PLATFORM}" },
+                    { "name": "🔗 Tamaño build ", "value": ":${BUILD_SIZE}" },
+                    { "name": "🔗 Enlace ", "value": "[Descargar artifact](${LINK_ACTION})" },
+                    { "name": "⏱️ Duración ", "value": "${DURATION}" }
+                  ],
+                  "footer": {
+                    "text": "GitHub Actions - Discord Integration", 
+                    "icon_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+                  },
+                  "author": {
+                    "name": "${PROJECT_NAME}"
+                  },
+                  "thumbnail": {
+                    "url": "${THUMBNAIL_URL}"
+                  },
+                  "timestamp": "${TIMESTAMP:-$(date -u +'%Y-%m-%dT%H:%M:%SZ')}"
+                }
+              ]
+            }
+          EOF
+
+          echo "✅ payload.json generado:"
+          cat payload.json
+  
+      - name: Notify Discord
+        if: always()
+        id: notify_discord
+        continue-on-error: true
+        run: |
+          set +e  # Desactivar 'exit on error' para controlar errores manualmente
+
+          # 1️⃣ Verificar que exista el payload
+          if [ ! -f payload.json ]; then
+            echo '{"content": "⚠️ Error al construir el mensaje JSON para Discord ❌."}' > payload.json
+          fi
+          
+          # 2️⃣ Enviar mensaje y capturar salida y código
+          echo "📤 Enviando notificación a Discord..."
+          response=$(curl -s -w "HTTPSTATUS:%{http_code}" -H "Content-Type: application/json" -d @payload.json ${{ secrets.DISCORD_WEBHOOK_URL }})
+
+          body=$(echo "$response" | sed -e 's/HTTPSTATUS\:.*//g')
+          status=$(echo "$response" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+
+          # 3️⃣ Evaluar resultado
+          if [ "$status" -ge 400 ]; then
+            echo "❌ Error: Discord devolvió código HTTP $status"
+            echo "discord_status=FAILED" >> $GITHUB_OUTPUT
+            echo "Respuesta del servidor:"
+            echo "$body"
+
+            # Enviar mensaje de error alternativo
+            error_msg="{\"content\": \"Error al enviar notificación a Discord ❌. [Ver workflow](${{ inputs.link_action }})\"}"
+            curl -s -H "Content-Type: application/json" -d "$error_msg" "$WEBHOOK_URL" >/dev/null || true
+          else
+            echo "✅ Notificación enviada correctamente (HTTP $status)"
+            echo "discord_status=SUCCESS" >> $GITHUB_OUTPUT
+          fi
+
+          # 4️⃣ No fallar el job aunque haya error
+          exit 0
+      
+      - name: Summary
+        run: |
+          {
+            echo "## 🛠️ Discord Summary"
+            echo "Discord status: ${{ steps.notify_discord.outputs.discord_status }}"
+            echo "Fecha: $(date '+%Y-%m-%d %H:%M:%S')"
+          } >> $GITHUB_STEP_SUMMARY

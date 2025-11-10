@@ -1,0 +1,16 @@
+name: Example - Build Windows
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - PRE_PRODUCCION
+      - PRODUCCION
+
+jobs:
+  build-windows:
+    uses: Pax16gamedev/TestGameCI_DevOps/.github/workflows/build-windows.yml@DESARROLLO
+    with:
+      unityVersion: 6000.2.10f1
+      sendToDiscord: true
+    secrets: inherit
