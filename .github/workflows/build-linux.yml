@@ -1,11 +1,7 @@
-name: Build WebGL
+name: Build Linux
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - PRE_PRODUCCION
-      - PRODUCCION
   workflow_call:
     inputs: 
       unityVersion:
@@ -13,15 +9,6 @@ on:
         type: string
         default: '6000.2.10f1'
         description: 'Version of Unity to use for the build.'
-      publishToItch: 
-        required: false
-        default: false
-        type: boolean
-      itchioChannel:
-        required: false
-        default: pax16/test-devops:webgl
-        type: string
-        description: 'Whether to publish the build to Itch.io.'
       sendToDiscord: 
         required: false
         default: false
@@ -38,14 +25,13 @@ on:
         required: false
       ITCHIO_API_KEY:
         required: false
+
 jobs:
   build:
-    name: 🌐 Build WebGL
+    name: 🐧 Build Linux
     uses: RiojaDevs/GameCI_Devops/.github/workflows/build-core.yml@DESARROLLO
     with:
       unityVersion: ${{ inputs.unityVersion }}
-      buildTarget: WebGL
-      publishToItch: ${{ inputs.publishToItch }}
-      itchioChannel: ${{ inputs.itchioChannel }}
+      buildTarget: StandaloneLinux64
       sendToDiscord: ${{ inputs.sendToDiscord }}
     secrets: inherit
