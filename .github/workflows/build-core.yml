@@ -394,6 +394,13 @@ jobs:
             fi
           
             echo "## 📦 Cambios incluidos en el MERGE de $SOURCE_BRANCH → $TARGET_BRANCH"
+
+            echo "🔄 Fetching branches..."
+            git fetch origin "$SOURCE_BRANCH":"refs/remotes/origin/$SOURCE_BRANCH"
+            git fetch origin "$TARGET_BRANCH":"refs/remotes/origin/$TARGET_BRANCH"
+
+            REMOTE_SOURCE="origin/$SOURCE_BRANCH"
+            REMOTE_TARGET="origin/$TARGET_BRANCH"
             
             # Si las ramas son iguales, no hay promoción
             if [ "$SOURCE_BRANCH" = "$TARGET_BRANCH" ]; then
@@ -406,7 +413,7 @@ jobs:
             fi
 
             # Buscar el commit base común
-            MERGE_BASE=$(git merge-base $SOURCE_BRANCH $TARGET_BRANCH)
+            MERGE_BASE=$(git merge-base "$SOURCE_BRANCH" "$TARGET_BRANCH")
             echo "**Rango de commits:** ${MERGE_BASE:0:7}..$(git rev-parse --short $SOURCE_BRANCH)"
             echo ""
 
