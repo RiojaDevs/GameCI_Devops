@@ -33,7 +33,7 @@ on:
 jobs:
   build:
     name: 🪟 Build Windows
-    uses: RiojaDevs/GameCI_Devops/.github/workflows/build-core.yml@DESARROLLO
+    uses: RiojaDevs/GameCI_Devops/.github/workflows/build-core.yml@main
     with:
       unityVersion: ${{ inputs.unityVersion }}
       buildTarget: StandaloneWindows64

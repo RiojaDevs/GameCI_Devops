@@ -29,7 +29,7 @@ on:
 jobs:
   build:
     name: 🐧 Build Linux
-    uses: RiojaDevs/GameCI_Devops/.github/workflows/build-core.yml@DESARROLLO
+    uses: RiojaDevs/GameCI_Devops/.github/workflows/build-core.yml@main
     with:
       unityVersion: ${{ inputs.unityVersion }}
       buildTarget: StandaloneLinux64
