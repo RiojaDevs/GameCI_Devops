@@ -379,64 +379,64 @@ jobs:
             echo "- Fecha: $(date '+%Y-%m-%d %H:%M:%S')"
           } >> $GITHUB_STEP_SUMMARY
 
-      - name: Show commit changes in summary
-        if: always()
-        run: |
-          {
-            TARGET_BRANCH="${{ github.ref_name }}"
-            if [ "$TARGET_BRANCH" = "PRE_PRODUCCION" ]; then
-              SOURCE_BRANCH="DESARROLLO"
-            elif [ "$TARGET_BRANCH" = "PRODUCCION" ]; then
-              SOURCE_BRANCH="PRE_PRODUCCION"
-            else
-              echo "⚠️ Rama actual no reconocida ($TARGET_BRANCH), usando DESARROLLO como origen."
-              SOURCE_BRANCH="DESARROLLO"
-            fi
+      # - name: Show commit changes in summary
+      #   if: always()
+      #   run: |
+      #     {
+      #       TARGET_BRANCH="${{ github.ref_name }}"
+      #       if [ "$TARGET_BRANCH" = "PRE_PRODUCCION" ]; then
+      #         SOURCE_BRANCH="DESARROLLO"
+      #       elif [ "$TARGET_BRANCH" = "PRODUCCION" ]; then
+      #         SOURCE_BRANCH="PRE_PRODUCCION"
+      #       else
+      #         echo "⚠️ Rama actual no reconocida ($TARGET_BRANCH), usando DESARROLLO como origen."
+      #         SOURCE_BRANCH="DESARROLLO"
+      #       fi
           
-            echo "## 📦 Cambios incluidos en el MERGE de $SOURCE_BRANCH → $TARGET_BRANCH"
+      #       echo "## 📦 Cambios incluidos en el MERGE de $SOURCE_BRANCH → $TARGET_BRANCH"
 
-            echo "🔄 Fetching branches..."
-            git fetch origin "$SOURCE_BRANCH":"refs/remotes/origin/$SOURCE_BRANCH"
-            git fetch origin "$TARGET_BRANCH":"refs/remotes/origin/$TARGET_BRANCH"
+      #       echo "🔄 Fetching branches..."
+      #       git fetch origin "$SOURCE_BRANCH":"refs/remotes/origin/$SOURCE_BRANCH"
+      #       git fetch origin "$TARGET_BRANCH":"refs/remotes/origin/$TARGET_BRANCH"
 
-            REMOTE_SOURCE="origin/$SOURCE_BRANCH"
-            REMOTE_TARGET="origin/$TARGET_BRANCH"
+      #       REMOTE_SOURCE="origin/$SOURCE_BRANCH"
+      #       REMOTE_TARGET="origin/$TARGET_BRANCH"
             
-            # Si las ramas son iguales, no hay promoción
-            if [ "$SOURCE_BRANCH" = "$TARGET_BRANCH" ]; then
-              echo "ℹ️ **Ramas idénticas:** $SOURCE_BRANCH → $TARGET_BRANCH"
-              echo ""
-              echo "No se ha detectado una promoción entre ramas diferentes, por lo que no se listan commits ni archivos modificados."
-              echo ""
-              echo "**Fecha de generación:** $(date '+%Y-%m-%d %H:%M:%S')"
-              exit 0
-            fi
+      #       # Si las ramas son iguales, no hay promoción
+      #       if [ "$SOURCE_BRANCH" = "$TARGET_BRANCH" ]; then
+      #         echo "ℹ️ **Ramas idénticas:** $SOURCE_BRANCH → $TARGET_BRANCH"
+      #         echo ""
+      #         echo "No se ha detectado una promoción entre ramas diferentes, por lo que no se listan commits ni archivos modificados."
+      #         echo ""
+      #         echo "**Fecha de generación:** $(date '+%Y-%m-%d %H:%M:%S')"
+      #         exit 0
+      #       fi
 
-            # Buscar el commit base común
-            MERGE_BASE=$(git merge-base "$SOURCE_BRANCH" "$TARGET_BRANCH")
-            echo "**Rango de commits:** ${MERGE_BASE:0:7}..$(git rev-parse --short $SOURCE_BRANCH)"
-            echo ""
+      #       # Buscar el commit base común
+      #       MERGE_BASE=$(git merge-base "$SOURCE_BRANCH" "$TARGET_BRANCH")
+      #       echo "**Rango de commits:** ${MERGE_BASE:0:7}..$(git rev-parse --short $SOURCE_BRANCH)"
+      #       echo ""
 
-            # Mostrar commits nuevos (sin merges)
-            echo "**Commits incluidos:**"
-            echo "\`\`\`"
-            git log $MERGE_BASE..$SOURCE_BRANCH --pretty=format:"%h - %s (%an)" --no-merges || echo "(Sin commits detectados)"
-            echo "\`\`\`"
-            echo ""
+      #       # Mostrar commits nuevos (sin merges)
+      #       echo "**Commits incluidos:**"
+      #       echo "\`\`\`"
+      #       git log $MERGE_BASE..$SOURCE_BRANCH --pretty=format:"%h - %s (%an)" --no-merges || echo "(Sin commits detectados)"
+      #       echo "\`\`\`"
+      #       echo ""
 
-            # Mostrar archivos modificados
-            echo "**Archivos modificados (máx 15):**"
-            echo "\`\`\`"
-            git diff --name-only $MERGE_BASE $SOURCE_BRANCH | head -n 15 || echo "(No hay archivos detectados)"
-            echo "\`\`\`"
+      #       # Mostrar archivos modificados
+      #       echo "**Archivos modificados (máx 15):**"
+      #       echo "\`\`\`"
+      #       git diff --name-only $MERGE_BASE $SOURCE_BRANCH | head -n 15 || echo "(No hay archivos detectados)"
+      #       echo "\`\`\`"
 
-            COUNT=$(git log $MERGE_BASE..$SOURCE_BRANCH --oneline --no-merges | wc -l)
-            echo ""
-            echo "**Total de commits:** $COUNT"
+      #       COUNT=$(git log $MERGE_BASE..$SOURCE_BRANCH --oneline --no-merges | wc -l)
+      #       echo ""
+      #       echo "**Total de commits:** $COUNT"
 
-            echo ""
-            echo "**Fecha de generación:** $(date '+%Y-%m-%d %H:%M:%S')"
-          } >> $GITHUB_STEP_SUMMARY
+      #       echo ""
+      #       echo "**Fecha de generación:** $(date '+%Y-%m-%d %H:%M:%S')"
+      #     } >> $GITHUB_STEP_SUMMARY
 
   upload-to-itchio:
     if: ${{ inputs.publishToItch == true }}
