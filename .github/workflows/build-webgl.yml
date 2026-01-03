@@ -2,10 +2,6 @@ name: Build WebGL
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - PRE_PRODUCCION
-      - PRODUCCION
   workflow_call:
     inputs: 
       unityVersion:
