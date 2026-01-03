@@ -1,0 +1,31 @@
+# Add 'Documentation' label to any file changes within 'docs' or 'guides' folders
+documentation:
+- changed-files:
+  - any-glob-to-any-file:
+    - docs/*
+    - guides/*
+
+# Add 'feature' label to any PR where the head branch name starts with `feat` or has a `feat` section in the name
+feature:
+ - head-branch: ['^feat.*']
+
+# Add 'bug' label to any PR where the head branch name starts with `bug` or has a `bug` section in the name
+bugfix:
+  - head-branch: ['^bug.*', '^fix.*', '^hotfix.*']
+
+# Add 'enhancement' label to any PR where the head branch name starts with `enhancement` or has a `enhancement` section in the name
+enhancement:
+  - head-branch: ['^enhancement.*']
+
+chore:
+  - head-branch: ['^chore.*']
+
+refactor:
+  - head-branch: ['^refactor.*']
+
+pre-release:
+  - base-branch: 'PRE_PRODUCCION'
+
+# Add 'release' label to any PR that is opened against the `main` branch
+release:
+ - base-branch: 'PRODUCCION'

@@ -1,8 +1,7 @@
 name: PR Labeler
 
 on:
-  pull_request:
-    types: [opened, ready_for_review, synchronize]
+  workflow_call:
 
 jobs:
   pr-labeler:

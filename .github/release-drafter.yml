@@ -1,0 +1,48 @@
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+
+categories:
+  - title: 🚀 Features
+    labels:
+      - 'feature'
+      - 'feat'
+      - 'enhancement'
+  - title: 🐛 Fixes
+    labels:
+      - 'bugfix'
+      - 'fix'
+      - 'hotfix'
+      - 'bug'
+  - title: 🛠 Maintenance
+    labels:
+      - 'refactor'
+      - 'documentation'
+      - 'chore'
+
+change-template: '- ${{change.title}} (#${{change.number}}) — @${{change.author}}'
+
+version-resolver:
+  major:
+    labels:
+      - 'major'
+  minor:
+    labels:
+      - 'feature'
+      - 'enhancement'
+  patch:
+    labels:
+      - 'bugfix'
+      - 'refactor'
+      - 'chore'
+  default: patch
+
+# autolabeler -> se configura desde otro worfklow
+
+template: |
+  ## [v$RESOLVED_VERSION] - ${{ env.RELEASE_DATE }}
+  Este archivo contiene un resumen de los cambios introducidos en esta versión.
+
+  ## Cambios
+  $CHANGES
+
+  **Full Changelog**: https://github.com/$OWNER/$REPO/compare/$PREVIOUS_TAG...$NEW_TAG
