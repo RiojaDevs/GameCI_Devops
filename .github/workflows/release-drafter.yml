@@ -2,13 +2,6 @@ name: Changelog with Release Drafter
 
 on:
   workflow_call:
-  push:
-    branches:
-      - PRE_PRODUCCION
-      - PRODUCCION
-  pull_request:
-    types: [opened, reopened, synchronize]
-    # types: [closed] # El workflow solo acepta -> [opened, reopened, synchronize]
     
 jobs:
   update_release_draft:
