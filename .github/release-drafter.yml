@@ -19,7 +19,7 @@ categories:
       - 'documentation'
       - 'chore'
 
-change-template: '- ${{change.title}} (#${{change.number}}) — @${{change.author}}'
+change-template: '- ${{title}} (#${{number}}) — @${{author}}'
 
 version-resolver:
   major:
@@ -39,7 +39,7 @@ version-resolver:
 # autolabeler -> se configura desde otro worfklow
 
 template: |
-  ## [v$RESOLVED_VERSION] - ${{ env.RELEASE_DATE }}
+  ## [v$RESOLVED_VERSION]
   Este archivo contiene un resumen de los cambios introducidos en esta versión.
 
   ## Cambios
